@@ -74,11 +74,12 @@ def getDailyChange():
 
 @app.route("/current_holdings", methods=["GET"])
 def current_holdings():
-    #return current holdings (ticker, quantity, day and total change, market value, unit cost, total cost)
+    """
+    return current holdings (ticker, quantity, day and total change, market value, unit cost, total cost)
+    """
     
     base_df = df[df["Date"] == "2024-12-01"]
     
-    # Get today's prices, daily change, and total change from our helper functions.
     today_prices = getMostRecentTickerPrice()   # Series: ticker -> today's price
     daily_changes = getDailyChange()              # Dict: ticker -> daily change
     total_changes = getTotalChange()              # Dict: ticker -> total change (today vs. 2024-12-01)
@@ -88,7 +89,7 @@ def current_holdings():
     for idx, row in base_df.iterrows():
         ticker = row["Symbol"]
         quantity = row["Shares"]
-        unit_cost = row["PriceOnDate"]  # Price from 2024-12-01 (unit cost)
+        unit_cost = row["PriceOnDate"]
         total_cost = quantity * unit_cost
         
         current_price = today_prices.get(ticker)
@@ -105,6 +106,28 @@ def current_holdings():
             "TotalChange": total_changes.get(ticker)
         }
         holdings.append(holding)
+
+    return jsonify(holdings)
+
+@app.route("/trades", methods={"GET"})
+def getTrades():
+    """
+    Returns all of the trades from the CSV
+    """
+
+    holdings = []
+    for idx, row in df.iterrows():
+        ticker = row["Symbol"]
+        quantity = row["Shares"]
+        date = row["Date"]
+
+        holding = {
+            "Ticker" : ticker,
+            "Quantity" : quantity,
+            "Date" : date
+        }
+        holdings.append(holding)
+
 
     return jsonify(holdings)
 

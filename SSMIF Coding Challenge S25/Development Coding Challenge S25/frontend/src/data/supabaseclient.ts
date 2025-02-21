@@ -1,5 +1,6 @@
 import { createClient} from '@supabase/supabase-js'
 import { StoredUser } from './types'
+import { useUserStore } from './userstore'
 
 
 export const supabase = createClient(
@@ -10,8 +11,19 @@ export const supabase = createClient(
 
 export async function GetSignedInUser() {
     const { data: { session } } = await supabase.auth.getSession()
+    
+    console.log(session)
+    if (session ) {
+        useUserStore((state) => state.userData = {
+            user : session.user,
+            stored: {
+                email : session.user.email, 
+                user_id : session.user.id,
+                username : session.user.email.split("@")[0]
+            }
+        })
+        console.log("HI")
 
-    if (session) {
         return true
     }
     return false
@@ -19,7 +31,7 @@ export async function GetSignedInUser() {
 
 export async function getUserById(id: string): Promise<StoredUser | null> {
 
-    const { data, error } = await supabase.from("Users").select("*").eq("user_id", id)
+    const { data, error } = await supabase.from("users").select("*").eq("user_id", id)
   
     if (error) {
         console.error("Error fetching user by ID:", error.message);

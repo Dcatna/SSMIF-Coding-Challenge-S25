@@ -58,11 +58,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
             userData: undefined,
  
           });
-        } else if (event === "PASSWORD_RECOVERY") {
-          // handle password recovery event
-        } else if (event === "TOKEN_REFRESHED") {
-          // handle token refreshed event
-        } else if (event === "USER_UPDATED") {
+        }
+         else if (event === "USER_UPDATED") {
           // handle user updated event
           get().refreshUser();
         }
@@ -87,6 +84,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const result = await supabase.auth.signInWithPassword({email, password});
       
       if(!result.error) {
+        console.log(result.error)
         const stored = await getUserById(result.data.user.id)
         if (!stored) {
           console.warn("User ID not found in database");
@@ -98,7 +96,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
             stored: stored,
           }
         })
-       
+      get().refreshUser()
         return true
       }
       return false

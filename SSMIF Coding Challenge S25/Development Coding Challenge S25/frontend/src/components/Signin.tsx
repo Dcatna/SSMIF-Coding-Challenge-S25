@@ -17,9 +17,10 @@ const Signin = () => {
     useEffect(() => {
         async function checkUser(){
             const signedIn = await GetSignedInUser()
-                if (signedIn) {
-                    navigator("/home")
-                }
+            console.log(signedIn)
+            if (signedIn) {
+                navigator("/home")
+            }
         }
         checkUser()
     }, [navigator])

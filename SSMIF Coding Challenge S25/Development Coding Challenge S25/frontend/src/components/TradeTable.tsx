@@ -3,9 +3,8 @@ import { useEffect, useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 interface TradeHistory {
     Date: string;
-    Sector: string;
-    Shares: number;
-    Symbol: string;
+    Quantity: number;
+    Ticker: string;
 }
 
 const TradeTable = () => {
@@ -27,16 +26,14 @@ const TradeTable = () => {
             <TableRow>
                 <TableHead>Ticker</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead>Sector</TableHead>
                 <TableHead>Date</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
-            {holdings.map((holding) => (
-                <TableRow key={holding.Symbol}>
-                    <TableCell>{holding.Symbol}</TableCell>
-                    <TableCell>{holding.Shares}</TableCell>
-                    <TableCell>{holding.Sector}</TableCell>
+            {holdings.map((holding, idx) => (
+                <TableRow key={idx}>
+                    <TableCell>{holding.Ticker}</TableCell>
+                    <TableCell>{holding.Quantity}</TableCell>
                     <TableCell>{holding.Date}</TableCell>
                 </TableRow>
             ))}
