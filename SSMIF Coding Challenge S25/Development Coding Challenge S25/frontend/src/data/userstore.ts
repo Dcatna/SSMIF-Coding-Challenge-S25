@@ -18,8 +18,8 @@ export interface UserStore {
 function getInitialUserData() {
     try {
       // Fetch the stored data from localStorage
-      const userString = localStorage.getItem("user");
-      const storedString = localStorage.getItem("stored");
+      const userString = localStorage.getItem("ssmifuser");
+      const storedString = localStorage.getItem("ssmifstored");
   
       // Parse the JSON strings into objects
       const user = userString ? JSON.parse(userString) : null;
@@ -52,8 +52,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
             .refreshUser()
             
         } else if (event === "SIGNED_OUT") {
-          localStorage.removeItem("user")
-          localStorage.removeItem("stored")
+          localStorage.removeItem("ssmifuser")
+          localStorage.removeItem("ssmifstored")
           set({
             userData: undefined,
  
@@ -66,12 +66,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       })
       initializeUser().then((result) => {
         if (!result.ok) {
-          localStorage.removeItem("user")
-          localStorage.removeItem("stored")
+          localStorage.removeItem("ssmifuser")
+          localStorage.removeItem("ssmifstored")
           return
         }
-        localStorage.setItem("user", JSON.stringify(result.data.user))
-        localStorage.setItem("stored", JSON.stringify(result.data.stored))
+        localStorage.setItem("ssmifuser", JSON.stringify(result.data.user))
+        localStorage.setItem("ssmifstored", JSON.stringify(result.data.stored))
         set({
           userData: result.data,
         });
@@ -118,8 +118,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
         console.warn("User ID not found in database");
         return;
       }
-      localStorage.setItem("user", JSON.stringify({ user: data.user }));
-      localStorage.setItem("stored", JSON.stringify(stored));
+      localStorage.setItem("ssmifuser", JSON.stringify({ user: data.user }));
+      localStorage.setItem("ssmifstored", JSON.stringify(stored));
       set({
         userData: {
           user: data.user,

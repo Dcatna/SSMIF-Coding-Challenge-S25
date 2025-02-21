@@ -131,6 +131,26 @@ def getTrades():
 
     return jsonify(holdings)
 
+@app.route("/portfolio_value", methods=["GET"])
+def getPortfolioValue():
+    """
+    returns the total change in portfolio value over time (till today)
+    """
+
+    df = pd.read_csv("data/enriched_holdings.csv", parse_dates=["Date"])
+    
+    # Compute the value for each row (holding)
+    df["PortfolioValue"] = df["Shares"] * df["PriceOnDate"]
+    
+    # Group by date and sum the values for all tickers on that date
+    value_by_date = df.groupby("Date")["PortfolioValue"].sum().reset_index()
+    value_by_date = value_by_date.sort_values("Date")
+    
+    # Convert the result to a list of dictionaries and return as JSON
+    result = value_by_date.to_dict(orient="records")
+    return jsonify(result)
+
+
 if __name__ == "__main__":
     # Example usage
     app.run(debug=True)
