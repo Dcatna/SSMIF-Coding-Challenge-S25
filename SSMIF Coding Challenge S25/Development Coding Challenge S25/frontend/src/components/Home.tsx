@@ -10,7 +10,7 @@ const Home = () => {
         <Graph/>
         <PortfolioValueGraph/>
         <div className='flex'>
-          <div className='w-[550px] h-[700px] overflow-x-auto ml-2'>
+          <div className='w-[1500px] h-[700px] overflow-x-auto ml-2'>
             <StockTable/>
           </div>
           <div className='ml-8 w-[550px] h-[700px] overflow-x-auto'>

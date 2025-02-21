@@ -1,7 +1,12 @@
+from flask import Flask, jsonify
+from flask_cors import CORS
 import pandas as pd
 import yfinance as yf
 import datetime
 import time
+
+app = Flask(__name__)
+CORS(app)
 
 df = pd.read_csv("data/enriched_holdings.csv")
 
@@ -10,30 +15,27 @@ def getMostRecentTickerPrice():
 
     tickers = df["Symbol"].unique().tolist()
     data = yf.download(tickers, period="5d", interval="1d", progress=False)
-    
-    # data["Close"] is a DataFrame with columns = tickers.
+
     close_data = data["Close"]
     
-    # For each ticker, get the last non-NaN value.
     latest_prices = {}
     for ticker in close_data.columns:
-        # Drop NaNs and get the last available value.
         series = close_data[ticker].dropna()
         if not series.empty:
             latest_prices[ticker] = series.iloc[-1]
         else:
             latest_prices[ticker] = None
 
-    # Return as a Series mapping ticker -> last price.
-    return pd.Series(latest_prices)
+    return pd.Series(latest_prices) #ticker -> closing price
 
-def getDayAndTotalChange():
-    "Get the day and total change in price for each ticker"
+def getTotalChange():
+    "Get total change in price for each ticker based on 2024-12-01"
+
+    #getting total change
     today_prices = getMostRecentTickerPrice()
 
     base_df = df[df["Date"] == "2024-12-01"] #just hard code this
     base_prices = dict(zip(base_df["Symbol"], base_df["PriceOnDate"]))
-    print(base_prices)
 
     total_change = {}
     for ticker, current_price in today_prices.items():
@@ -43,22 +45,71 @@ def getDayAndTotalChange():
         else:
             total_change[ticker] = None
     
-    print("Total Change (today vs. 2024-12-01):")
-    for ticker, change in total_change.items():
-        print(f"{ticker}: {change}")
-        
-    return total_change
+    # print("Total Change (today vs. 2024-12-01):")
+    # for ticker, change in total_change.items():
+    #     print(f"{ticker}: {change}")
     
-    # return total_change
+    return total_change
 
+def getDailyChange():
+    tickers = df["Symbol"].unique().tolist()
+    data = yf.download(tickers, period="5d", interval="1d", progress=False)
+    
+    close_data = data["Close"]
+    close_data = close_data.dropna(how="all") #drop future rows
+    
+    daily_changes = {}
+    for ticker in tickers:
+        series = close_data[ticker].dropna() #get valid closing prices
+        if len(series) < 2:
+            daily_changes[ticker] = None #not enough data to calc change
+        else:
+            daily_changes[ticker] = series.iloc[-1] - series.iloc[-2] #last two valid values
+    
+    # print("Daily Change (last two valid trading days) per ticker:")
+    # for t, change in daily_changes.items():
+    #     print(f"{t}: {change}")
+    
+    return daily_changes
 
+@app.route("/current_holdings", methods=["GET"])
+def current_holdings():
+    #return current holdings (ticker, quantity, day and total change, market value, unit cost, total cost)
+    
+    base_df = df[df["Date"] == "2024-12-01"]
+    
+    # Get today's prices, daily change, and total change from our helper functions.
+    today_prices = getMostRecentTickerPrice()   # Series: ticker -> today's price
+    daily_changes = getDailyChange()              # Dict: ticker -> daily change
+    total_changes = getTotalChange()              # Dict: ticker -> total change (today vs. 2024-12-01)
+    
+    holdings = []
+    
+    for idx, row in base_df.iterrows():
+        ticker = row["Symbol"]
+        quantity = row["Shares"]
+        unit_cost = row["PriceOnDate"]  # Price from 2024-12-01 (unit cost)
+        total_cost = quantity * unit_cost
+        
+        current_price = today_prices.get(ticker)
+        market_value = quantity * current_price if current_price is not None else None
+        
+        holding = {
+            "Ticker": ticker,
+            "Quantity": quantity,
+            "UnitCost": unit_cost,
+            "TotalCost": total_cost,
+            "CurrentPrice": current_price,
+            "MarketValue": market_value,
+            "DailyChange": daily_changes.get(ticker),
+            "TotalChange": total_changes.get(ticker)
+        }
+        holdings.append(holding)
 
-
-
-
-
+    return jsonify(holdings)
 
 if __name__ == "__main__":
     # Example usage
-    getDayAndTotalChange()
+    app.run(debug=True)
+
 
