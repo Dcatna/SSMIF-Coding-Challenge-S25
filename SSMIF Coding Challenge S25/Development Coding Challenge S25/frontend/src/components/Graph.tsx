@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
 
 const Graph = () => {
@@ -8,25 +8,18 @@ const Graph = () => {
     fetch("http://127.0.0.1:5000/sector_breakdown")
       .then(response => response.json())
       .then(rawData => {
-        // Transform the API data to a flat structure.
-        const transformed = rawData.map(item => {
-          // Rename Date to lowercase "date" for consistency.
-          return { 
-            date: item.Date, 
-            ...item.SectorBreakdown 
-          };
-        });
-        setData(transformed);
+
+        setData(rawData);
 
       })
       .catch(error => console.error("Error fetching holdings:", error));
   }, []);
 
-  
+  console.log(data)
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data}>
-        <XAxis dataKey="date" />
+        <XAxis dataKey="Date" />
         <YAxis />
         <Tooltip />
         <Legend />

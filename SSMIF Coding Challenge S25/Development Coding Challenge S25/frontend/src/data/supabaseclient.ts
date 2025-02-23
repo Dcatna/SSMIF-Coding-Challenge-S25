@@ -1,6 +1,5 @@
 import { createClient} from '@supabase/supabase-js'
 import { StoredUser } from './types'
-import { useUserStore } from './userstore'
 
 
 export const supabase = createClient(
@@ -14,15 +13,6 @@ export async function GetSignedInUser() {
     
     console.log(session)
     if (session ) {
-        useUserStore((state) => state.userData = {
-            user : session.user,
-            stored: {
-                email : session.user.email, 
-                user_id : session.user.id,
-                username : session.user.email.split("@")[0]
-            }
-        })
-        console.log("HI")
 
         return true
     }

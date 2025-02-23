@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, CartesianGrid, Line, Legend } from 'recharts';
 
+interface PortfolioValue {
+  Date: string,
+  PortfolioValue: number,
+}
+
+
 const PortfolioValueGraph = () => {
-  const [data, setData] = useState([]);
+  const [portfolioData, setPortfolioData] = useState<PortfolioValue[]>([]);
 
   useEffect(() => {
     fetch("http://127.0.0.1:5000/portfolio_value")
@@ -10,15 +16,16 @@ const PortfolioValueGraph = () => {
       .then(rawData => {
         // Optionally transform rawData if needed.
         // For now, assume rawData is in the correct format.
-        setData(rawData);
+        setPortfolioData(rawData as PortfolioValue[]);
     
       })
       .catch(error => console.error("Error fetching portfolio value:", error));
   }, []);
-  console.log(data)
+
+
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data}>
+      <LineChart data={portfolioData}>
         <XAxis dataKey="Date" />
         <YAxis />
         <Tooltip />

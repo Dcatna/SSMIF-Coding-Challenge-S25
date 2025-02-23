@@ -8,7 +8,7 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-df = pd.read_csv("data/enriched_holdings.csv")
+df = pd.read_csv("data/new_holdings.csv")
 
 def getMostRecentTickerPrice():
     "Get the closing/recent ticker price from CSV"
@@ -72,6 +72,7 @@ def getDailyChange():
     
     return daily_changes
 
+
 @app.route("/current_holdings", methods=["GET"])
 def current_holdings():
     """
@@ -80,9 +81,9 @@ def current_holdings():
     
     base_df = df[df["Date"] == "2024-12-01"]
     
-    today_prices = getMostRecentTickerPrice()   # Series: ticker -> today's price
-    daily_changes = getDailyChange()              # Dict: ticker -> daily change
-    total_changes = getTotalChange()              # Dict: ticker -> total change (today vs. 2024-12-01)
+    today_prices = getMostRecentTickerPrice()
+    daily_changes = getDailyChange()
+    total_changes = getTotalChange()
     
     holdings = []
     
@@ -131,23 +132,56 @@ def getTrades():
 
     return jsonify(holdings)
 
+@app.route("/S&P500VSPortfolio", methods=["GET"])
+def getSP500AndPortfolioChange():
+    """
+    Returns the percent change of the S&P500 vs Portfolio
+    """
+
+    sp_df = pd.read_csv("data/S&P500Info.csv", parse_dates=["Date"]).sort_values("Date")
+    sp_df["SP500PctChange"] = (sp_df["SP500Close"] / sp_df["SP500Close"].iloc[0] - 1) * 100 #get the percent change from the S&P500 from the first date
+
+    port_df = pd.read_csv("data/new_holdings.csv", parse_dates=["Date"])
+    port_df["PortfolioValue"] = port_df["Shares"] * port_df["PriceOnDate"] #get value for each holding
+
+    port_value_df = port_df.groupby("Date")["PortfolioValue"].sum().reset_index().sort_values("Date") #get portfolio value for that day
+    port_value_df["PortfolioPctChange"] = (port_value_df["PortfolioValue"] / port_value_df["PortfolioValue"].iloc[0] - 1) * 100 #get the percent change for portfolio
+
+    merged_df = pd.merge(sp_df[["Date", "SP500PctChange"]], port_value_df[["Date", "PortfolioPctChange"]], on="Date", how="inner") #merge dfs on Date
+    
+    result = merged_df.to_dict(orient="records")
+    return jsonify(result)
+
 @app.route("/portfolio_value", methods=["GET"])
 def getPortfolioValue():
     """
     returns the total change in portfolio value over time (till today)
     """
 
-    df = pd.read_csv("data/enriched_holdings.csv", parse_dates=["Date"])
+    df = pd.read_csv("data/new_holdings.csv", parse_dates=["Date"])
     
-    # Compute the value for each row (holding)
-    df["PortfolioValue"] = df["Shares"] * df["PriceOnDate"]
+    df["PortfolioValue"] = df["Shares"] * df["PriceOnDate"] #get value of each holding 
     
-    # Group by date and sum the values for all tickers on that date
-    value_by_date = df.groupby("Date")["PortfolioValue"].sum().reset_index()
+    value_by_date = df.groupby("Date")["PortfolioValue"].sum().reset_index() #group by date and then get sum of all tickers for that date
     value_by_date = value_by_date.sort_values("Date")
     
-    # Convert the result to a list of dictionaries and return as JSON
-    result = value_by_date.to_dict(orient="records")
+    result = value_by_date.to_dict(orient="records") #convert to a list of dictionaries
+    return jsonify(result)
+
+@app.route("/sector_breakdown" , methods=["GET"])
+def getSectorPerformance():
+    """Get the sector performance over time"""
+
+    df = pd.read_csv("data/new_holdings.csv", parse_dates=["Date"])
+    
+    df["SectorValue"] = df["Shares"] * df["PriceOnDate"] #get value of each holding 
+    
+    grouped = df.groupby(["Date", "Sector"])["SectorValue"].sum().reset_index() #group by date and sector and get value of each sector per date
+    
+    pivoted = grouped.pivot(index="Date", columns="Sector", values="SectorValue") #pivot table so that each date is a row and each sector and value are a column
+    pivoted = pivoted.fillna(0).reset_index()
+    
+    result = pivoted.to_dict(orient="records")
     return jsonify(result)
 
 

@@ -43,7 +43,16 @@ def get_price_on_date(yf_ticker, trade_date):
     except Exception as e:
         print(f"Error retrieving data for {yf_ticker} on {trade_date.strftime('%Y-%m-%d')}: {e}")
         return None
-
+    
+def get_sector(yf_ticker):
+    """Retrieve the sector for a given yfinance ticker via its info dict."""
+    try:
+        ticker_obj = yf.Ticker(yf_ticker)
+        info = ticker_obj.info
+        return info.get("sector", "Other")
+    except Exception as e:
+        return "Other"
+    
 def enrich_csv_with_price(input_csv, output_csv):
     # Read the original CSV and parse dates.
     df = pd.read_csv(input_csv)
@@ -88,6 +97,8 @@ def enrich_csv_with_price(input_csv, output_csv):
         trade_date = row["Date"]
         data = hist_data.get(symbol, pd.DataFrame())
         price = None
+
+
         if not data.empty:
             if trade_date in data.index:
                 price = data.loc[trade_date, "Close"]
@@ -107,9 +118,42 @@ def enrich_csv_with_price(input_csv, output_csv):
     
     # Add the new column and save the enriched CSV.
     df["PriceOnDate"] = price_list
+
+    unique_symbols = df["Symbol"].unique()
+    sector_mapping = {}
+    for symbol in unique_symbols:
+        yf_ticker = get_yf_ticker(symbol)
+        sector_mapping[symbol] = get_sector(yf_ticker)
+    
+    # Map the sector to each row based on its symbol.
+    df["Sector"] = df["Symbol"].map(sector_mapping)
     df.to_csv(output_csv, index=False)
     print(f"Enriched CSV written to {output_csv}")
 
+def getSP500Info(input_csv, output_csv):
+
+    df = pd.read_csv(input_csv, parse_dates=["Date"])
+    unique_dates = sorted(pd.to_datetime(df["Date"].unique()))
+
+    sp_mapping = {}
+    for date in unique_dates:
+        start_str = (date - timedelta(days=3)).strftime("%Y-%m-%d")
+        end_str = (date + timedelta(days=1)).strftime("%Y-%m-%d")
+        sp_data = yf.download("^GSPC", start=start_str, end=end_str, auto_adjust=False, progress=False)
+        sp_data.index = pd.to_datetime(sp_data.index)
+
+        valid_data = sp_data[sp_data.index <= date]
+        if valid_data.empty:
+            sp_mapping[date.strftime("%Y-%m-%d")] = None
+        else:
+            sp_close = valid_data["Close"].iloc[-1]
+            sp_mapping[date.strftime("%Y-%m-%d")] = float(sp_close)
+        time.sleep(1)
+
+    sp_df = pd.DataFrame(list(sp_mapping.items()), columns=["Date", "SP500Close"])
+    sp_df.to_csv(output_csv, index=False)
+
 if __name__ == "__main__":
     # Example usage
-    enrich_csv_with_price("data/holdings.csv", "data/enriched_holdings.csv")
+    #enrich_csv_with_price("data/holdings.csv", "data/new_holdings.csv")
+    getSP500Info("data/holdings.csv", "data/S&P500Info.csv")
