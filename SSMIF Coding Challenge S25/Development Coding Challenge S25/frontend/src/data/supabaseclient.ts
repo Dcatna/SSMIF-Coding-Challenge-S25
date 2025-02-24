@@ -4,7 +4,7 @@ import { StoredUser } from './types'
 
 export const supabase = createClient(
     'https://dclfiuotoegyysbelntk.supabase.co', 
-    import.meta.env.VITE_SUPABASE_API_KEY
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjbGZpdW90b2VneXlzYmVsbnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk5MTI4MzYsImV4cCI6MjA1NTQ4ODgzNn0.P2ta7cgjT2J71LJ_uSIKmGV4AiQQINv8aE0K5KYVm6c"
 )
 
 

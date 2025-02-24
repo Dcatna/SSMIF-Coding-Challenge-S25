@@ -2,13 +2,53 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import pandas as pd
 import yfinance as yf
-import datetime
-import time
-
+from supabase import create_client, Client
+import os
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-df = pd.read_csv("data/new_holdings.csv")
+SUPABASE_URL = "https://dclfiuotoegyysbelntk.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjbGZpdW90b2VneXlzYmVsbnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk5MTI4MzYsImV4cCI6MjA1NTQ4ODgzNn0.P2ta7cgjT2J71LJ_uSIKmGV4AiQQINv8aE0K5KYVm6c"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def fetch_all_holdings():
+    """Fetch all rows from holdings using pagination."""
+    all_data = []
+    limit = 1000  # Supabase default limit
+    offset = 0  # Start from the first row
+
+    while True:
+        response = supabase.table("holdings").select("*").range(offset, offset + limit - 1).execute()
+
+        if not response.data:
+            break  # Stop when there's no more data
+
+        all_data.extend(response.data)
+        offset += limit  # Move the offset forward
+
+    return pd.DataFrame(all_data)
+
+def fetch_SPData():
+    """Fetch all rows from sp500data."""
+    response = supabase.table("sp500data").select("*").execute()
+
+    if response.data:
+        df = pd.DataFrame(response.data)
+
+        return df
+    return pd.DataFrame()  # Return an empty DataFrame if there's no data
+
+
+df = fetch_all_holdings()
+print("Total rows fetched:", len(df))
+
+# df = fetch_table_as_df("holdings")
+df_sp500 = fetch_SPData()
+print("Columns in df_holdings:", df.columns.tolist())
+# print("First few rows in df_holdings:\n", df_holdings.head())
+
 
 def getMostRecentTickerPrice():
     "Get the closing/recent ticker price from CSV"
@@ -34,7 +74,7 @@ def getTotalChange():
     #getting total change
     today_prices = getMostRecentTickerPrice()
 
-    base_df = df[df["Date"] == "2024-12-01"] #just hard code this
+    base_df = df[df["Date"] == "2024-12-01T00:00:00+00:00"] #just hard code this
     base_prices = dict(zip(base_df["Symbol"], base_df["PriceOnDate"]))
 
     total_change = {}
@@ -78,9 +118,9 @@ def current_holdings():
     """
     return current holdings (ticker, quantity, day and total change, market value, unit cost, total cost)
     """
-    
-    base_df = df[df["Date"] == "2024-12-01"]
-    
+
+    base_df = df[df["Date"] == "2024-12-01T00:00:00+00:00"] #just hard code this
+
     today_prices = getMostRecentTickerPrice()
     daily_changes = getDailyChange()
     total_changes = getTotalChange()
@@ -138,13 +178,18 @@ def getSP500AndPortfolioChange():
     Returns the percent change of the S&P500 vs Portfolio
     """
 
-    sp_df = pd.read_csv("data/S&P500Info.csv", parse_dates=["Date"]).sort_values("Date")
+    sp_df = df_sp500
+    sp_df["Date"] = pd.to_datetime(sp_df["Date"], errors="coerce")
+    sp_df["Date"] = sp_df["Date"].dt.tz_localize(None)
     sp_df["SP500PctChange"] = (sp_df["SP500Close"] / sp_df["SP500Close"].iloc[0] - 1) * 100 #get the percent change from the S&P500 from the first date
 
     port_df = pd.read_csv("data/new_holdings.csv", parse_dates=["Date"])
     port_df["PortfolioValue"] = port_df["Shares"] * port_df["PriceOnDate"] #get value for each holding
 
-    port_value_df = port_df.groupby("Date")["PortfolioValue"].sum().reset_index().sort_values("Date") #get portfolio value for that day
+    port_value_df = port_df.groupby("Date")["PortfolioValue"].sum().reset_index() #get portfolio value for that day
+    print("SP500 Date Type:", sp_df["Date"].dtype)
+    print("Portfolio Date Type:", port_value_df["Date"].dtype)
+
     port_value_df["PortfolioPctChange"] = (port_value_df["PortfolioValue"] / port_value_df["PortfolioValue"].iloc[0] - 1) * 100 #get the percent change for portfolio
 
     merged_df = pd.merge(sp_df[["Date", "SP500PctChange"]], port_value_df[["Date", "PortfolioPctChange"]], on="Date", how="inner") #merge dfs on Date
@@ -158,7 +203,6 @@ def getPortfolioValue():
     returns the total change in portfolio value over time (till today)
     """
 
-    df = pd.read_csv("data/new_holdings.csv", parse_dates=["Date"])
     
     df["PortfolioValue"] = df["Shares"] * df["PriceOnDate"] #get value of each holding 
     
