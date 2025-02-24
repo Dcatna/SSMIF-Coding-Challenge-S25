@@ -12,7 +12,6 @@ const Signup = () => {
     const signedIn = useUserStore((state) => state.signedIn)
     useEffect(() => {
         function checkUser(){
-
                 if (signedIn()) {
                     navigator("/home")
                 }
