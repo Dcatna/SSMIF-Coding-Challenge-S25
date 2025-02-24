@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Line } from "recharts";
 
-const SP500VSPortfolioGraph = () => {
-    const [data, setData] = useState([])
+function SharpeGraph() {
+    const [data, setData] = useState([]);
     
-    useEffect(() => {
-        fetch("http://127.0.0.1:5000/S&P500VSPortfolio")
+      useEffect(() => {
+        fetch("http://127.0.0.1:5000/sharperatio")
         .then(response => response.json())
-        .then(rawData => {
-
-            setData(rawData);
-
-        })
+        .then(data => setData(data))
         .catch(error => console.error("Error fetching holdings:", error));
-    }, []);
+      }, []);
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -23,12 +19,10 @@ const SP500VSPortfolioGraph = () => {
         <Tooltip />
         <Legend />
         <CartesianGrid strokeDasharray="3 3" />
-        <Line type="monotone" dataKey="SP500PctChange" stroke="#8884d8" strokeWidth={3} dot={false} />
-        <Line type="monotone" dataKey="PortfolioPctChange" stroke="#82ca9d" strokeWidth={3} dot={false} />
-
+        <Line type="monotone" dataKey="SharpeRatio" stroke="#8884d8" strokeWidth={3} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   )
 }
 
-export default SP500VSPortfolioGraph
+export default SharpeGraph

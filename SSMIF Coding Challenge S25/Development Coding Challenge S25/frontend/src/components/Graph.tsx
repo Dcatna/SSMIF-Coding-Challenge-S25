@@ -15,7 +15,7 @@ const Graph = () => {
       .catch(error => console.error("Error fetching holdings:", error));
   }, []);
 
-  console.log(data)
+
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data}>

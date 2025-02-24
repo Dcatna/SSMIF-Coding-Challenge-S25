@@ -79,7 +79,7 @@ async function submitForm (formData : IFormInput) {
     <div className=" w-full flex flex-col items-center justify-center">
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-brandYellow mb-2">Sign In!</h1>
+          <h1 className="text-2xl font-bold text-red-500 mb-2">Sign In!</h1>
           <p className="text-gray-600 mb-4">Please enter your email and password</p>
         </div>
 
@@ -88,7 +88,7 @@ async function submitForm (formData : IFormInput) {
             <input
               type="text"
               placeholder="Email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brandYellow"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               {...register("email")}
             />
             <p className="text-red-500 text-sm mt-1">{errors.email?.message}</p>
@@ -98,7 +98,7 @@ async function submitForm (formData : IFormInput) {
             <input
               type="password"
               placeholder="Password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brandYellow"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               {...register("password")}
             />
             <p className="text-red-500 text-sm mt-1">{errors.password?.message}</p>
@@ -106,7 +106,7 @@ async function submitForm (formData : IFormInput) {
 
           <button
             onClick={errors.password || errors.email ? handleButtonClick : () => {}}
-            className={`w-full py-2 bg-purple-400 rounded-md transition-all duration-300 ${
+            className={`w-full py-2 !bg-red-500  rounded-md border border-black transition-all duration-300 ${
               isJiggling ? "animate-shake" : ""
             }`}
             type="submit"
@@ -116,10 +116,10 @@ async function submitForm (formData : IFormInput) {
         </form>
 
         <div className="text-center mt-6">
-          <p className="text-gray-600">Don’t have an account yet?</p>
+          <p className="text-red-500">Don’t have an account yet?</p>
           <Link
             to="/signup"
-            className="text-brandYellow hover:underline font-medium"
+            className="text-red-500 hover:underline font-medium"
           >
             Create Account
           </Link>

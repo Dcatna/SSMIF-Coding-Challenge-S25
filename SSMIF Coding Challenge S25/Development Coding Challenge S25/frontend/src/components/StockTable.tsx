@@ -14,7 +14,6 @@ export interface Holding {
 
 const StockTable = () => {
     const [holdings, setHoldings] = useState<Holding[]>([]);
-    //const [currentDate, setCurrentDate] = useState<string>("")
 
   useEffect(() => {
     fetch("http://127.0.0.1:5000/current_holdings")
@@ -24,7 +23,6 @@ const StockTable = () => {
   }, []);
 
 
-  console.log(holdings)
   return (
     <div className='border-2 border-black'>
     <h2 className="text-lg font-bold">Stock Holdings</h2>

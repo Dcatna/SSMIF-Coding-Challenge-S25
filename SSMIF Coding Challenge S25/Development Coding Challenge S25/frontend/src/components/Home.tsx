@@ -1,5 +1,6 @@
 import Graph from './Graph'
 import PortfolioValueGraph from './PortfolioValueGraph'
+import SharpeGraph from './SharpeGraph'
 import SP500VSPortfolioGraph from './SP500VSPortfolioGraph'
 import StockTable from './StockTable'
 import TradeTable from './TradeTable'
@@ -11,6 +12,7 @@ const Home = () => {
         <Graph />
         <PortfolioValueGraph />
         <SP500VSPortfolioGraph />
+        <SharpeGraph />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="w-full max-w-7xl max-h-[700px] overflow-x-auto overflow-y-auto border-b border-black pb-4">
