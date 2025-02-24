@@ -19,8 +19,8 @@ unit cost, total cost) and a table for all of the trades starting from 2015-01-0
 **To run this project you need to cd to the frontend folder and run npm install to install all dependencies, then in a seperate terminal (for ease) cd to the backend and install all of the dependencies from flask, flask_cors, pandas, yfinance, supabase, os, dotenv through pip install <flask, ...>**
 **To run this project you need to cd to the frontend folder and run npm install to install all dependencies, then in a seperate terminal (for ease) cd to the backend and install all of the dependencies from flask, flask_cors, pandas, yfinance, supabase, os, dotenv through pip install <flask, ...>**
 
-To run the frontend go to the frontend folder and run npm run dev and click on the localhost url (I didnt have enough time to deploy this due to having a lot of work to do this week)
-To run the backend go to the backend folder and run python app.py**
+**To run the frontend go to the frontend folder and run npm run dev and click on the localhost url (I didnt have enough time to deploy this due to having a lot of work to do this week)**
+**To run the backend go to the backend folder and run python app.py**
 
 To access the page go to create an account and create your account, it will send you a verification email which you must access before signing in. Once done you will have access to the home page. 
 
