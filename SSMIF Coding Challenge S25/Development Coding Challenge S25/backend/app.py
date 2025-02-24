@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv() #was for the keys in .env
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 SUPABASE_URL = "https://dclfiuotoegyysbelntk.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjbGZpdW90b2VneXlzYmVsbnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk5MTI4MzYsImV4cCI6MjA1NTQ4ODgzNn0.P2ta7cgjT2J71LJ_uSIKmGV4AiQQINv8aE0K5KYVm6c"
